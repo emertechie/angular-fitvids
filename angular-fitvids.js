@@ -24,7 +24,10 @@ angular.module('fitVids', []).directive('fitVids', [function() {
     }
 
     return {
-        restrict: 'A',
+        restrict: 'AE',
+        scope: {
+            source: '='
+        },
         link: function (scope, element, attr) {
 
             var selectors = [
@@ -42,33 +45,45 @@ angular.module('fitVids', []).directive('fitVids', [function() {
                 selectors.push(attr.customSelector);
             }
 
-            videos = element[0].querySelectorAll(selectors.join(','));
+            function run() {
+                videos = element[0].querySelectorAll(selectors.join(','));
 
-            angular.forEach(videos, function (item) {
+                angular.forEach(videos, function (item) {
 
-                var $item = angular.element(item);
-                var height, width, aspectRatio;
+                    var $item = angular.element(item);
+                    var height, width, aspectRatio;
 
-                if (item.tagName.toLowerCase() === 'embed' &&
+                    if (item.tagName.toLowerCase() === 'embed' &&
                         ($item.parent().tagName === 'object' && $item.parent().length) ||
                         $item.parent().hasClass('.fluid-width-video-wrapper')) {
-                    return;
-                }
+                        return;
+                    }
 
-                height = (item.tagName.toLowerCase() === 'object' || $item.attr('height')) ? parseInt($item.attr('height'), 10) : $item.height();
-                width = !isNaN(parseInt($item.attr('width'), 10)) ? parseInt($item.attr('width'), 10) : $item.width();
-                aspectRatio = height / width;
+                    height = (item.tagName.toLowerCase() === 'object' || $item.attr('height')) ? parseInt($item.attr('height'), 10) : $item.height();
+                    width = !isNaN(parseInt($item.attr('width'), 10)) ? parseInt($item.attr('width'), 10) : $item.width();
+                    aspectRatio = height / width;
 
-                if (!$item.attr('id')) {
-                    var videoID = 'fitvid' + Math.floor(Math.random()*999999);
-                    $item.attr('id', videoID);
-                }
+                    if (!$item.attr('id')) {
+                        var videoID = 'fitvid' + Math.floor(Math.random()*999999);
+                        $item.attr('id', videoID);
+                    }
 
-                $item.wrap('<div class="fluid-width-video-wrapper" />').parent().css('padding-top', (aspectRatio * 100) + "%");
-                $item.removeAttr('height').removeAttr('width');
+                    $item.wrap('<div class="fluid-width-video-wrapper" />').parent().css('padding-top', (aspectRatio * 100) + "%");
+                    $item.removeAttr('height').removeAttr('width');
 
-            });
+                });
+            }
 
+            if (attr.source) {
+                scope.$watch('source', function(sourceVal) {
+                    if (sourceVal) {
+                        element.html(sourceVal);
+                        run();
+                    }
+                });
+            } else {
+                run();
+            }
         }
     };
 
